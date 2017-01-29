@@ -6,7 +6,7 @@ import { Game } from './game/game';
 
 export class Server {
 
-    private maxInstances: Number = numCPUs
+    private maxInstances: number = numCPUs
     private connector: Connector;
 
     constructor(private game: string, instances?: Number) {
