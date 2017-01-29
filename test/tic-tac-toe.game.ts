@@ -6,7 +6,11 @@ var spawner = new GameSpawner(() => new TicTacToe()).start();
 
 class TicTacToe extends Game {
     constructor() {
-        super();
+        super(1);
         winston.info("Tic Tac Toe server created");
+    }
+
+    start() {
+        winston.info("Tic Tac Toe started")
     }
 }
