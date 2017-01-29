@@ -10,10 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Xenira/potato.git/game-server"
+    "url": "git@github.com:Xenira/potato-game-server"
   },
   "author": "Xenira",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Xenira/potato-game-server/issues"
+  },
+  "homepage": "https://github.com/Xenira/potato-game-server#readme",
   "devDependencies": {
     "@types/jasmine": "^2.5.41",
     "@types/node": "^7.0.4",
