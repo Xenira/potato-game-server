@@ -1,16 +1,18 @@
 import { connect, createServer, ConnectionOptions, TlsOptions } from 'tls';
 import * as winston from 'winston';
-import { fork } from 'child_process';
 
 import { GameSpawner, ISpawnerMessage } from '../game/game-spawner'
 import { Game } from '../game/game'
+import { Pool } from './instance';
 
 export class Connector {
 
     private socketOptions: ConnectionOptions;
     private serverOptions: TlsOptions;
 
-    constructor(private instances: Number, private game: string, key: string, cert: string, serverCerts: string[]) {
+    private pool: Pool;
+
+    constructor(private instances: number, private game: string, key: string, cert: string, serverCerts: string[]) {
         this.socketOptions = {
             key,
             cert,
@@ -29,16 +31,18 @@ export class Connector {
     }
 
     public Start(port: number, authPort: number, host?: string) {
-        winston.info("-------------------------");
+        winston.info("---------------------------");
         winston.info("Connecting to auth-server");
         this.ConnectAuthServer(authPort, host);
         winston.info("Starting connector server");
         this.StartConnectorServer(port);
-        winston.info("-------------------------");
+        winston.info("---------------------------");
+        winston.info("Populating game-server pool")
+        this.pool = new Pool(this.game, this.instances);
+        winston.info("---------------------------");
     }
 
     private StartConnectorServer(port: number) {
-        winston.info("TLS server starting");
         let server = createServer(this.serverOptions, (stream) => {
             winston.info(`Stream opened on ${stream.remoteAddress}:${stream.remotePort}`);
             stream.on("data", (chunk) => {
@@ -53,10 +57,11 @@ export class Connector {
 
         server.listen(port, () => {
             winston.info('Server bound on port ' + port);
-            let instance = fork(this.game).on('message', () => {
-                instance.send('spawn');
-                instance.send('spawn');
-            })
+            setTimeout(() => {
+                let spawner = this.pool.getFreeInstance();
+                if (spawner) spawner.createNewInstance((id) => winston.info(`Got game instance with id ${id}`));
+                else winston.error('No fee instences');
+            }, 5000);
         });
     }
 
