@@ -6,7 +6,7 @@ import { Connector } from './connector/connector'
 
 export class Server {
 
-    private maxInstances: Number = numCPUs - 1
+    private maxInstances: Number = numCPUs
     private connector: Connector;
 
     constructor(instances?: Number) {
@@ -17,20 +17,20 @@ export class Server {
         }
     }
 
-    public Start() {
+    public Start(key: string, cert: string, serverCerts: string[]) {
         if (cluster.isMaster) {
-           cluster.fork()
-           cluster.on("exit", (worker, code, signal) => {
-                winston.warn(`Connector ${worker.process.pid} has exited. Trying to restart`);
+           let connector = cluster.fork();
+           connector.on("exit", (code, signal) => {
+                winston.warn(`Connector ${connector.process.pid} has exited. Trying to restart`);
                 cluster.fork();
-            });
+           });
         } else {
-            this.connector = new Connector();
-            cluster.worker.destroy();
+            this.connector = new Connector(this.maxInstances, key, cert, serverCerts);
         }
     }
 
     private CheckConfiguration():void {
-        if (this.maxInstances > numCPUs) winston.warn(`You have configured ${this.maxInstances} + 1 instances on a ${numCPUs} core machine. To many threads may reduce performance.`)
+        if (this.maxInstances > numCPUs) winston.warn(`You have configured ${this.maxInstances} instances on a ${numCPUs} core machine. To many threads may reduce performance.`)
+        if (this.maxInstances <= 1) throw new Error("You need at least 2 instances.");
     }
 }
