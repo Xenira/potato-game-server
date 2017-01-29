@@ -9,7 +9,6 @@ export abstract class Game extends EventEmitter {
 
     constructor(private ticks: number = 20) {
         super();
-        winston.info(`Game with id ${this.id} was generated`);
         setImmediate(() => this.start())
         setInterval(() => this.tick(), 1000 / ticks)
     }
