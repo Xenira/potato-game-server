@@ -1,5 +1,5 @@
 {
-  "name": "potato-game-server",
+  "name": "@potato/game-server",
   "version": "1.0.0",
   "description": "",
   "main": "/lib/index.js",
