@@ -1,22 +1,22 @@
 import * as winston from 'winston';
-import * as cluster from 'cluster'
 const numCPUs = require('os').cpus().length;
 
-import { Connector } from './connector/connector'
+import { Connector } from './connector/connector';
+import { Game } from './game/game';
 
 export class Server {
 
     private maxInstances: Number = numCPUs
     private connector: Connector;
 
-    constructor(instances?: Number) {
+    constructor(private game: string, instances?: Number) {
         this.maxInstances = instances || process.env.instances || this.maxInstances;
 
         this.CheckConfiguration();
     }
 
     public Start(key: string, cert: string, serverCerts: string[], port: number = 3000, authPort: number = 8000) {
-        this.connector = new Connector(this.maxInstances, key, cert, serverCerts);
+        this.connector = new Connector(this.maxInstances, this.game, key, cert, serverCerts);
         this.connector.Start(port, authPort);
     }
 

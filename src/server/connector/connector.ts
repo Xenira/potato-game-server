@@ -1,14 +1,16 @@
 import { connect, createServer, ConnectionOptions, TlsOptions } from 'tls';
 import * as winston from 'winston';
+import { fork } from 'child_process';
 
-import { Cluster } from 'cluster';
+import { GameSpawner, ISpawnerMessage } from '../game/game-spawner'
+import { Game } from '../game/game'
 
 export class Connector {
 
     private socketOptions: ConnectionOptions;
     private serverOptions: TlsOptions;
 
-    constructor(private instances: Number, key: string, cert: string, serverCerts: string[]) {
+    constructor(private instances: Number, private game: string, key: string, cert: string, serverCerts: string[]) {
         this.socketOptions = {
             key,
             cert,
@@ -51,6 +53,10 @@ export class Connector {
 
         server.listen(port, () => {
             winston.info('Server bound on port ' + port);
+            let instance = fork(this.game).on('message', () => {
+                instance.send('spawn');
+                instance.send('spawn');
+            })
         });
     }
 

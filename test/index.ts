@@ -7,7 +7,7 @@ var cert: string = fs.readFileSync("./test/ssl/gs-test-cert.pem", "utf-8")
 
 readCertificates();
 
-var s: Server = new Server(10);
+var s: Server = new Server(__dirname + '/tic-tac-toe.game', 10);
 s.Start(key, cert, serverCerts);
 
 function readCertificates() {
