@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "shortid": "^2.2.6",
+    "tslint": "^4.4.2",
     "winston": "^2.3.1"
   }
 }

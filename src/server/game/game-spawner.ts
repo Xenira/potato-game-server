@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import * as winston from 'winston';
 import * as process from 'process';
 
-import { Game } from './game'
+import { Game } from './game';
 
 export interface ISpawnerMessage {
     command: 'config' | 'spawn';
@@ -30,11 +30,11 @@ export class GameSpawner<T extends Game> {
     }
 
     private SendResponse(id: string, data: any) {
-        this.processEvents.sendMessage('response', id, data)
+        this.processEvents.sendMessage('response', id, data);
     }
 
     private spawnGame(): string {
-        if (this.games.length >= this.maxGames) return null;
+        if (this.games.length >= this.maxGames) { return null; }
         let game = this.spawn();
         this.games.push(game);
         this.reportLoad();

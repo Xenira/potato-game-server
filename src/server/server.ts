@@ -2,11 +2,10 @@ import * as winston from 'winston';
 const numCPUs = require('os').cpus().length;
 
 import { Connector } from './connector/connector';
-import { Game } from './game/game';
 
 export class Server {
 
-    private maxInstances: number = numCPUs
+    private maxInstances: number = numCPUs;
     private connector: Connector;
 
     constructor(private game: string, instances?: Number) {
@@ -21,7 +20,7 @@ export class Server {
     }
 
     private CheckConfiguration(): void {
-        if (this.maxInstances > numCPUs) winston.warn(`You have configured ${this.maxInstances} instances on a ${numCPUs} core machine. To many threads may reduce performance.`)
-        if (this.maxInstances <= 1) throw new Error("You need at least 2 instances.");
+        if (this.maxInstances > numCPUs) { winston.warn(`You have configured ${this.maxInstances} instances on a ${numCPUs} core machine. To many threads may reduce performance.`); }
+        if (this.maxInstances <= 1) { throw new Error("You need at least 2 instances."); }
     }
 }

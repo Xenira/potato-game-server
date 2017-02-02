@@ -1,8 +1,6 @@
 import { connect, createServer, ConnectionOptions, TlsOptions } from 'tls';
 import * as winston from 'winston';
 
-import { GameSpawner, ISpawnerMessage } from '../game/game-spawner'
-import { Game } from '../game/game'
 import { Pool } from './instance';
 
 export class Connector {
@@ -27,7 +25,7 @@ export class Connector {
             requestCert: true,
             rejectUnauthorized: true,
             ca: serverCerts
-        }
+        };
     }
 
     public Start(port: number, authPort: number, host?: string) {
@@ -37,7 +35,7 @@ export class Connector {
         winston.info("Starting connector server");
         this.StartConnectorServer(port);
         winston.info("---------------------------");
-        winston.info("Populating game-server pool")
+        winston.info("Populating game-server pool");
         this.pool = new Pool(this.game, this.instances);
         winston.info("---------------------------");
     }
@@ -47,20 +45,20 @@ export class Connector {
             winston.info(`Stream opened on ${stream.remoteAddress}:${stream.remotePort}`);
             stream.on("data", (chunk) => {
                 try {
-                    if (typeof chunk === "string") winston.info(chunk);
-                    else winston.info(chunk.toString("utf-8"));
+                    if (typeof chunk === "string") { winston.info(chunk); }
+                    else { winston.info(chunk.toString("utf-8")); }
                 } catch (e) {
                     winston.error(e);
                 }
-            })
-        })
+            });
+        });
 
         server.listen(port, () => {
             winston.info('Server bound on port ' + port);
             setTimeout(() => {
                 let spawner = this.pool.getFreeInstance();
-                if (spawner) spawner.createNewInstance((id) => winston.info(`Got game instance with id ${id}`));
-                else winston.error('No fee instences');
+                if (spawner) { spawner.createNewInstance((id) => winston.info(`Got game instance with id ${id}`)); }
+                else { winston.error('No fee instences'); }
             }, 5000);
         });
     }
@@ -84,6 +82,6 @@ export class Connector {
                 winston.info("Trying to reconnect");
                 this.ConnectAuthServer(port, host);
             }, 15 * 1000);
-        })
+        });
     }
 }

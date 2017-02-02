@@ -6,7 +6,7 @@ winston.configure({
         new winston.transports.File({ filename: 'server.log' }),
         new winston.transports.Console()
     ]
-})
+});
 
 export { Server } from './server/server';
 

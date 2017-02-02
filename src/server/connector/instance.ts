@@ -18,7 +18,7 @@ class EventMapper extends EventEmitter {
         process.on('error', (e) => this.emit('error', e));
         process.on('exit', (c, s) => this.emit('exit', c, s));
         process.on('message', m => this.parseMessage(m));
-        this.on('response', (id: string, ...args: any[]) => this.handleResponse(id, args))
+        this.on('response', (id: string, ...args: any[]) => this.handleResponse(id, args));
     }
 
     private parseMessage(message: ProcessMessage) {
@@ -36,7 +36,7 @@ class EventMapper extends EventEmitter {
     }
 
     private handleResponse(id: string, args: any[]) {
-        if (!this.callbacks[id]) return;
+        if (!this.callbacks[id]) { return; }
         this.callbacks[id](...args);
         delete this.callbacks[id];
     }
@@ -48,8 +48,8 @@ export class Instance extends EventEmitter {
     private _load: number = 0;
     private _free: boolean = false;
 
-    get load() { return this._load }
-    get free() { return this._free }
+    get load() { return this._load; }
+    get free() { return this._free; }
 
     constructor(private game: string) {
         super();
@@ -63,7 +63,7 @@ export class Instance extends EventEmitter {
     }
 
     private reportLoad(load: number, free: boolean) {
-        winston.info(`Load is ${load}. Accapting new: ${free}`)
+        winston.info(`Load is ${load}. Accapting new: ${free}`);
         this._load = load;
         this._free = free;
     }
@@ -77,7 +77,7 @@ export class Pool {
     private instances: Instance[] = [];
 
     constructor(game: string, count: number) {
-        for (var i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             let instance = new Instance(game);
             this.registerListeners(instance);
             this.instances.push(instance);

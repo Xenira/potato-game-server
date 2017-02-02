@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'events';
 import { generate } from 'shortid';
 import * as winston from 'winston';
 
@@ -9,8 +9,15 @@ export abstract class Game extends EventEmitter {
 
     constructor(private ticks: number = 20) {
         super();
-        setImmediate(() => this.start())
-        setInterval(() => this.tick(), 1000 / ticks)
+        if (ticks > 1000){
+            throw Error(`Can't tick more than once per millisecond`);
+        }
+
+        setImmediate(() => this.start());
+
+        if (ticks > 0) {
+            setInterval(() => this.tick(), 1000 / ticks);
+        }
     }
 
     start(): void { }
