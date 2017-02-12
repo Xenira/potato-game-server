@@ -1,7 +1,14 @@
 import { connect, createServer, ConnectionOptions, TlsOptions } from 'tls';
+import { decode, encode } from 'msgpack-lite';
 import * as winston from 'winston';
 
+import { AuthEndpoint } from './endpoints';
 import { Pool } from './instance';
+import { Endpoint } from './protocol';
+
+const endpoints: { [key: number]: Endpoint } = {
+    0: new AuthEndpoint('auth')
+};
 
 export class Connector {
 
@@ -10,28 +17,20 @@ export class Connector {
 
     private pool: Pool;
 
-    constructor(private instances: number, private game: string, key: string, cert: string, serverCerts: string[]) {
-        this.socketOptions = {
-            key,
-            cert,
-
-            ca: serverCerts
-        };
-
+    constructor(private instances: number, private game: string, key: string, cert: string, serverCerts: string[],
+        rejectUnauthorized: boolean = true) {
         this.serverOptions = {
             key,
             cert,
 
-            requestCert: true,
-            rejectUnauthorized: true,
+            requestCert: rejectUnauthorized,
+            rejectUnauthorized,
             ca: serverCerts
         };
     }
 
-    public Start(port: number, authPort: number, host?: string) {
+    public Start(port: number) {
         winston.info("---------------------------");
-        winston.info("Connecting to auth-server");
-        this.ConnectAuthServer(authPort, host);
         winston.info("Starting connector server");
         this.StartConnectorServer(port);
         winston.info("---------------------------");
@@ -43,45 +42,43 @@ export class Connector {
     private StartConnectorServer(port: number) {
         let server = createServer(this.serverOptions, (stream) => {
             winston.info(`Stream opened on ${stream.remoteAddress}:${stream.remotePort}`);
-            stream.on("data", (chunk) => {
-                try {
-                    if (typeof chunk === "string") { winston.info(chunk); }
-                    else { winston.info(chunk.toString("utf-8")); }
-                } catch (e) {
-                    winston.error(e);
+            let user = null;
+            stream.on("data", (chunk: Buffer) => {
+                let packet = decode(chunk);
+                let resultCallback = (data: any) => {
+                    let result = { data };
+                    if (packet.id) { result['id'] = packet.id; };
+                    stream.write(encode(result));
                 }
+                if (!user) {
+                    if (packet.cmd === 0) {
+                        endpoints[0].execute(packet.data, (data) => {
+                            if (data) { user = data; }
+                            resultCallback(data);
+                        });
+                    } else {
+                        resultCallback(false);
+                    }
+                } else {
+                    switch (packet.cmd) {
+                        default:
+                            resultCallback(packet.data);
+                            break;
+                    }
+                }
+
+                console.log(chunk);
+                winston.info(JSON.stringify(packet));
             });
         });
 
         server.listen(port, () => {
             winston.info('Server bound on port ' + port);
-            setTimeout(() => {
+            /*setTimeout(() => {
                 let spawner = this.pool.getFreeInstance();
                 if (spawner) { spawner.createNewInstance((id) => winston.info(`Got game instance with id ${id}`)); }
                 else { winston.error('No fee instences'); }
-            }, 5000);
-        });
-    }
-
-    private ConnectAuthServer(port: number, host?: string) {
-        let socket = connect(port, host, this.socketOptions, () => {
-            winston.info('client connected',
-                socket.authorized ? 'authorized' : 'unauthorized');
-        });
-        socket.setEncoding('utf8');
-        socket.on('data', (data: string) => {
-            winston.info(data);
-        });
-        socket.on('end', () => {
-            winston.warn("Connection to auth-server closed");
-        });
-        socket.on("error", (e) => {
-            winston.error("Auth server error", e);
-            setTimeout(() => {
-                socket.end();
-                winston.info("Trying to reconnect");
-                this.ConnectAuthServer(port, host);
-            }, 15 * 1000);
+            }, 5000);*/
         });
     }
 }

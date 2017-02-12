@@ -14,9 +14,9 @@ export class Server {
         this.CheckConfiguration();
     }
 
-    public Start(key: string, cert: string, serverCerts: string[], port: number = 3000, authPort: number = 8000) {
-        this.connector = new Connector(this.maxInstances, this.game, key, cert, serverCerts);
-        this.connector.Start(port, authPort);
+    public Start(key: string, cert: string, serverCerts: string[], port: number = 3000, rejectUnauthorized: boolean = true) {
+        this.connector = new Connector(this.maxInstances, this.game, key, cert, serverCerts, rejectUnauthorized);
+        this.connector.Start(port);
     }
 
     private CheckConfiguration(): void {
