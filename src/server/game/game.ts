@@ -3,11 +3,15 @@ import { generate } from 'shortid';
 import * as winston from 'winston';
 
 export abstract class Game extends EventEmitter {
+    protected players: any[] = [];
     private lastTick: number = new Date().getTime();
 
     readonly id: string = generate();
 
-    constructor(private ticks: number = 20) {
+    // Timer
+    private tickTimer: NodeJS.Timer;
+
+    constructor(protected readonly ticks: number = 20) {
         super();
         if (ticks > 1000){
             throw Error(`Can't tick more than once per millisecond`);
@@ -16,7 +20,7 @@ export abstract class Game extends EventEmitter {
         setImmediate(() => this.start());
 
         if (ticks > 0) {
-            setInterval(() => this.tick(), 1000 / ticks);
+            this.tickTimer = setInterval(() => this.tick(), 1000 / ticks);
         }
     }
 
@@ -24,8 +28,21 @@ export abstract class Game extends EventEmitter {
 
     update(delta: number): void { };
 
-    send(players: any[], message: any): void {
+    onMessage(message: any) {
+        winston.info(`recived msg ${JSON.stringify(message)}`);
+    }
 
+    send(players: any[], message: any): void {
+        this.emit('msg', players.map(p => p.id), message);
+    }
+
+    close() {
+        clearInterval(this.tickTimer);
+        this.emit('close');
+    }
+
+    join(player: any) {
+        this.players.push(player);
     }
 
     private tick() {

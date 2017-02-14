@@ -8,14 +8,14 @@ export class Server {
     private maxInstances: number = numCPUs;
     private connector: Connector;
 
-    constructor(private game: string, instances?: Number) {
+    constructor(private game: string, private globalGames: any, instances?: Number) {
         this.maxInstances = instances || process.env.instances || this.maxInstances;
 
         this.CheckConfiguration();
     }
 
     public Start(key: string, cert: string, serverCerts: string[], port: number = 3000, rejectUnauthorized: boolean = true) {
-        this.connector = new Connector(this.maxInstances, this.game, key, cert, serverCerts, rejectUnauthorized);
+        this.connector = new Connector(this.maxInstances, this.game, this.globalGames, key, cert, serverCerts, rejectUnauthorized);
         this.connector.Start(port);
     }
 

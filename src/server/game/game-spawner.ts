@@ -15,12 +15,16 @@ export interface ISpawnerResponse {
 }
 
 export class GameSpawner<T extends Game> {
-    games: Game[] = [];
+    games: { [key: string]: Game } = { };
     private processEvents: EventMapper = new EventMapper();
 
-    constructor(private spawn: () => T, private maxGames: number = 1) {
+    constructor(private spawn: () => T, private maxGames: number = 1, global: boolean = false) {
+        if (global) { this.games['global'] = spawn(); }
+
         winston.info(`Game-Spawner instance with pid ${process.pid} loaded.`);
         this.processEvents.on('spawn', id => this.SendResponse(id, this.spawnGame()));
+        this.processEvents.on('join', (id: string, game: string, user: any) => this.join(game, user));
+        this.processEvents.on('gameMessage', (id: string, message: any) => this.games[id].onMessage(message));
     }
 
     public start(): GameSpawner<T> {
@@ -29,24 +33,38 @@ export class GameSpawner<T extends Game> {
         return this;
     }
 
+    private join(id: string, user: any) {
+        winston.info(`join request for ${id} from ${JSON.stringify(user)}`);
+        this.games[id].join(user);
+    }
+
     private SendResponse(id: string, data: any) {
         this.processEvents.sendMessage('response', id, data);
     }
 
     private spawnGame(): string {
-        if (this.games.length >= this.maxGames) { return null; }
+        if (Object.keys(this.games).length >= this.maxGames) { return null; }
         let game = this.spawn();
-        this.games.push(game);
+        this.addGame(game);
         this.reportLoad();
         return game.id;
     }
 
-    private despawnGame() {
+    private addGame(game: Game) {
+        game.on('close', () => this.despawnGame(game));
+        game.on('msg', (players: string[], message: any) =>
+            this.processEvents.sendMessage('gameMessage', players, message));
+        this.games[game.id] = game;
+    }
 
+    private despawnGame(game: Game) {
+        //delete this.games[game.id];
+        //this.processEvents.sendMessage('gameClosed', game.id);
     }
 
     private reportLoad() {
-        this.processEvents.sendMessage('loadChanged', this.games.length, this.games.length < this.maxGames);
+        let gameCount: number = Object.keys(this.games).length;
+        this.processEvents.sendMessage('loadChanged', gameCount, gameCount < this.maxGames);
     }
 }
 

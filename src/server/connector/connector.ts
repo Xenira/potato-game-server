@@ -17,7 +17,7 @@ export class Connector {
 
     private pool: Pool;
 
-    constructor(private instances: number, private game: string, key: string, cert: string, serverCerts: string[],
+    constructor(private instances: number, private game: string, private globalGames: any, key: string, cert: string, serverCerts: string[],
         rejectUnauthorized: boolean = true) {
         this.serverOptions = {
             key,
@@ -35,7 +35,7 @@ export class Connector {
         this.StartConnectorServer(port);
         winston.info("---------------------------");
         winston.info("Populating game-server pool");
-        this.pool = new Pool(this.game, this.instances);
+        this.pool = new Pool(this.game, this.globalGames, this.instances);
         winston.info("---------------------------");
     }
 
@@ -61,6 +61,9 @@ export class Connector {
                     }
                 } else {
                     switch (packet.cmd) {
+                        case 1: {
+                            this.pool.getGlobalInstance(packet.data.type).join('global', user, () => {return;});
+                        }
                         default:
                             resultCallback(packet.data);
                             break;
