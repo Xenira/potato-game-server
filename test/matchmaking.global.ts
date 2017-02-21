@@ -5,7 +5,7 @@ import { GlobalGame } from '../src/server/game/global.game';
 class DefaultMatchmaker extends GlobalGame {
     constructor() {
         super(0.5);
-        winston.info(`Tic Tac Toe game ${this.id} created`);
+        winston.info(`Matchmaking game ${this.id} created`);
     }
 
     start() { }

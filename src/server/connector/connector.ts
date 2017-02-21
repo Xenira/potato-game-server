@@ -42,11 +42,12 @@ export class Connector {
     private StartConnectorServer(port: number) {
         let server = createServer(this.serverOptions, (stream) => {
             winston.info(`Stream opened on ${stream.remoteAddress}:${stream.remotePort}`);
+            winston.info(`Sending welcome message`);
             let user = null;
             stream.on("data", (chunk: Buffer) => {
                 let packet = decode(chunk);
                 let resultCallback = (data: any) => {
-                    let result = { data };
+                    let result = { cmd: packet.cmd, data };
                     if (packet.id) { result['id'] = packet.id; };
                     stream.write(encode(result));
                 }

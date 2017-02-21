@@ -22,8 +22,6 @@ setTimeout(() => {
         socket.write(encode({ id: 41, cmd: 1, data: { type: 'matchmaking' } }));
         socket.write(encode({ id: 42, cmd: 0, data: { un: 'lasse.sprengel@gmail.com', pw: 'abcdef' } }));
         socket.write(encode({ id: 43, cmd: 1, data: { type: 'matchmaking' } }));
-        socket.write(encode({ id: 43, cmd: 1, data: { type: 'matchmaking' } }));
-        socket.write(encode({ id: 43, cmd: 1, data: { type: 'matchmaking' } }));
     });
     socket.on('data', (data: Buffer) => {
         console.log(decode(data));
