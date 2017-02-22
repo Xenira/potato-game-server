@@ -46,24 +46,33 @@ export class Connector {
             let user = null;
             stream.on("data", (chunk: Buffer) => {
                 let packet = decode(chunk);
+                winston.info(`<<< ${JSON.stringify(packet)}`);
                 let resultCallback = (data: any) => {
                     let result = { cmd: packet.cmd, data };
                     if (packet.id) { result['id'] = packet.id; };
+                    winston.info(`>>> ${JSON.stringify(result)}`);
+                    stream.write(encode(result));
+                }
+                let errorCallback = (message: string) => {
+                    let result = { cmd: 0, data: { message } };
+                    if (packet.id) { result['id'] = packet.id; };
+                    winston.error(`>>> ${JSON.stringify(result)}`);
                     stream.write(encode(result));
                 }
                 if (!user) {
-                    if (packet.cmd === 0) {
-                        endpoints[0].execute(packet.data, (data) => {
-                            if (data) { user = data; }
+                    if (packet.cmd === 1) {
+                        endpoints[0].execute(packet.data, (error, data) => {
+                            if (error) { return errorCallback(error); }
+                            user = data;
                             resultCallback(data);
                         });
                     } else {
-                        resultCallback(false);
+                        errorCallback("Authentification required");
                     }
                 } else {
                     switch (packet.cmd) {
                         case 1: {
-                            this.pool.getGlobalInstance(packet.data.type).join('global', user, () => {return;});
+                            this.pool.getGlobalInstance(packet.data.type).join('global', user, () => { return; });
                         }
                         default:
                             resultCallback(packet.data);
@@ -71,8 +80,6 @@ export class Connector {
                     }
                 }
 
-                console.log(chunk);
-                winston.info(JSON.stringify(packet));
             });
         });
 
