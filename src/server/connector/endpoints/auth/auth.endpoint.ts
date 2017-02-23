@@ -13,9 +13,13 @@ export class AuthEndpoint extends Endpoint {
             exp: 0,
             gold: 20,
             tickets: 1,
-            deck1: null,
-            deck2: null,
-            deck3: null
+            decks: [
+                { name: 'test', cards:
+                    [
+                        {name: 'Card A', rating: 1, dmgUp: 1, dmgDown: 2, dmgLeft: 3, dmgRight: 4}
+                    ]
+                }
+            ]
         });
     }
 }
